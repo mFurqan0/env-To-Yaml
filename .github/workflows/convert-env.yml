@@ -8,12 +8,13 @@ jobs:
   convert:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Grant write access
+      contents: write  # Critical for pushing changes
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          persist-credentials: false  # Required for write access
+          # Reset credentials to use GITHUB_TOKEN instead of default
+          persist-credentials: false  
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -29,11 +30,12 @@ jobs:
       - name: Commit and push YAML files
         shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Pass the token explicitly
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
+          git remote set-url origin "https://x-access-token:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY.git"
           git add CONVERTED_ENV_TO_YAML/
           git commit -m "Auto-commit converted YAML files" || echo "No changes to commit"
-          git pull --rebase
+          git pull --rebase  # Avoid merge conflicts
           git push origin main
