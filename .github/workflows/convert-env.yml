@@ -1,0 +1,32 @@
+name: Convert ENV to YAML
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: pip install PyYAML
+
+      - name: Run conversion script
+        run: python convert_script.py
+
+      - name: Commit and push YAML files
+        shell: bash
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add CONVERTED_ENV_TO_YAML/
+          git commit -m "Auto-commit converted YAML files" || echo "No changes to commit"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
