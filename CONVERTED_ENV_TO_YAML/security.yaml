@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: security
-  namespace: application
-data:
-  API_KEY: abc123$XYZ@456
-  JWT_SECRET: s3cret!with/special+chars

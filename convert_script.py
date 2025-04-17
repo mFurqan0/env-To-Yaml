@@ -1,16 +1,22 @@
 import pathlib
 import yaml
+import shutil
 
 def convert_env_to_flat_yaml():
-    # Define the root directory
-    root_dir = pathlib.Path(r"C:\Users\FURQAN\Documents\Custom Office Templates\ENV-to-YAML-")
+    # Root directory = directory where this script resides
+    root_dir = pathlib.Path(__file__).parent
     
-    # Define input and output directories
-    env_files_dir = root_dir / "ENV_FILES"  # Input .env files
-    output_dir = root_dir / "CONVERTED_ENV_TO_YAML"  # Output YAML files
-    
-    # Create output directory if it doesn't exist
-    output_dir.mkdir(parents=True, exist_ok=True)
+    # Define input/output directories relative to script location
+    env_files_dir = root_dir / "EnvFiles"  # Input .env files
+    output_dir = root_dir / "ConvertedYaml"  # Output YAML files
+
+    # Clear existing contents in output directory (if it exists)
+    if output_dir.exists():
+        for item in output_dir.iterdir():
+            if item.is_file():
+                item.unlink()  # Delete file
+            elif item.is_dir():
+                shutil.rmtree(item)  # Delete subdirectory
 
     # Process each .env file
     for env_file in env_files_dir.glob("*.env"):
