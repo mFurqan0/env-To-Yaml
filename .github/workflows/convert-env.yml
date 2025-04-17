@@ -14,6 +14,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Python
@@ -24,36 +25,35 @@ jobs:
       - name: Install dependencies
         run: pip install PyYAML
 
-      - name: Debug input files
+      - name: Verify files
         run: |
-          echo "Contents of ENV_FILES:"
+          echo "Repository contents:"
+          ls -la
+          echo "ENV_FILES contents:"
           ls -la ENV_FILES/
 
       - name: Run conversion script
-        run: python env_to_yaml.py
+        run: python convert_script.py  # Changed to match your filename
 
-      - name: Debug output files
+      - name: Check converted files
         run: |
-          echo "Contents of ConvertedYaml:"
+          echo "ConvertedYaml contents:"
           ls -la ConvertedYaml/
 
       - name: Commit and push changes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Configure git
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git remote set-url origin "https://x-access-token:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY.git"
           
-          # Add all changes
-          git add ConvertedYaml/
-          
-          # Check for changes
-          if [ -z "$(git status --porcelain)" ]; then
-            echo "No changes to commit"
+          # Check only for changes in ConvertedYaml
+          if [ -z "$(git status --porcelain ConvertedYaml/)" ]; then
+            echo "No changes in ConvertedYaml to commit"
           else
-            git commit -m "Auto-commit converted YAML files [$(date +'%Y-%m-%d %H:%M:%S')]"
+            git add ConvertedYaml/
+            git commit -m "Auto-update YAML files [$(date +'%Y-%m-%d %H:%M:%S')]"
             git pull --rebase
             git push origin main
           fi
