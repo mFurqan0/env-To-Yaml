@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -23,25 +24,36 @@ jobs:
       - name: Install dependencies
         run: pip install PyYAML
 
-      - name: Run conversion script
-        run: python convert_script.py  # Make sure this matches your script name
+      - name: Debug input files
+        run: |
+          echo "Contents of ENV_FILES:"
+          ls -la ENV_FILES/
 
-      - name: Commit and push YAML files
-        shell: bash
+      - name: Run conversion script
+        run: python env_to_yaml.py
+
+      - name: Debug output files
+        run: |
+          echo "Contents of ConvertedYaml:"
+          ls -la ConvertedYaml/
+
+      - name: Commit and push changes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Configure git
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git remote set-url origin "https://x-access-token:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY.git"
           
-          # Check if directory exists and has files
-          if [ -d "ConvertedYaml" ] && [ -n "$(ls ConvertedYaml/*.yaml 2>/dev/null)" ]; then
-            git add ConvertedYaml/
-            git commit -m "Auto-commit converted YAML files"
+          # Add all changes
+          git add ConvertedYaml/
+          
+          # Check for changes
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No changes to commit"
           else
-            echo "No YAML files found in ConvertedYaml directory"
+            git commit -m "Auto-commit converted YAML files [$(date +'%Y-%m-%d %H:%M:%S')]"
+            git pull --rebase
+            git push origin main
           fi
-
-          git pull --rebase
-          git push origin main
